@@ -2,6 +2,7 @@
 # 电子墨水屏计划
 ### 关于引脚使用
 在edpif.h文件中有注明
+通过`SPI.pins(CLK,MISO,MOSI,SS)`调整SPI引脚
 ```
 #if defined(ESP32)
 #define RST_PIN         21
@@ -13,7 +14,8 @@
 #define RST_PIN         2
 #define DC_PIN          0
 #define CS_PIN          15
-#define BUSY_PIN        4
+#define BUSY_PIN        12
+//#define BUSY_PIN        4
 #endif
 ```
 ### 关于局刷和全刷
