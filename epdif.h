@@ -42,7 +42,8 @@
 #define RST_PIN         2
 #define DC_PIN          0
 #define CS_PIN          15
-#define BUSY_PIN        4
+//#define BUSY_PIN        4
+#define BUSY_PIN        12
 #endif
 
 class EpdIf {
