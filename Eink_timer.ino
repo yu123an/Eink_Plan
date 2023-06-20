@@ -51,7 +51,7 @@ static struct rst_info *rinfo = ESP.getResetInfoPtr();//休眠唤醒信息
 int RST_reason = rinfo->reason;
 #include "EPD_Support.h"  //墨水屏需要
 //显示变量
-String temp, hump, windDir, wind, _weather, _date;  // 天气状况
+String temp, humidity, windDir, wind, _weather, _date;  // 天气状况
 int Temp_in, Humidity_in;                           // 室内温湿度
 int _day, _hour, _minute, _second;                  // 时间更新
 int update_flag = 0;                                // 更新标志位
@@ -169,6 +169,8 @@ void drawHomePage(){
   RtcDateTime now = Rtc.GetDateTime();
   _date = read_eeprom(_date_address,_date_long);
   temp = read_eeprom(temp_address,temp_long);
+  humidity = read_eeprom(humidity_address,humidity_long);
+  get_bat();
   if((now.Minute() % 10 == 0) || RST_reason == 0){
     if (ePaper.Init(lut_full_update) != 0) {
     Serial.print("ePaper init failed");
@@ -196,8 +198,8 @@ void drawHomePage(){
   Eink.setFreeFont(DejaVu_10);
   Eink.fillRect(classdown_x,classdown_y,classup_lx,classup_ly, PAPER);
   Eink.drawString("21 22 23 31 32 33 Ll",classdown_x,classdown_y);
-  Eink.drawString("T:" + temp +"℃",temp_x,temp_y);
-  Eink.drawString("H:83/99%",humidity_x,humidity_y);
+  Eink.drawString("T:" + temp +"/" + humidity + "%",temp_x,temp_y);
+  Eink.drawString("B:" + String(v_bat) + "v",humidity_x,humidity_y);
   Eink.drawString(_date,date_x + 8,date_y + 10);
   Eink.setTextColor(PAPER);
   Eink.fillRect(classup_x,classup_y,classup_lx,classup_ly, INK);
@@ -222,7 +224,7 @@ void write_eeprom(int addr,String velue){
     EEPROM.write(addr + a,velue[a]);
     //delay(50);
   }
-  EEPROM.commit();
+  //EEPROM.commit();
 }
 String read_eeprom(int addr,int lenth){
   String Text;
@@ -233,6 +235,16 @@ String read_eeprom(int addr,int lenth){
   }
   return Text ;
   Serial.print(Text);
+}
+//获取电量电压
+void get_bat(){
+  analogRead(A0);
+  double _bat = 0;
+  for (int i = 0; i < 8; i++) {
+    _bat += analogRead(A0);
+  }
+  //_bat > 3;
+  v_bat = _bat * 5 / 1024 / 8;
 }
 void setup() {
   Serial.begin(115200);
@@ -255,9 +267,12 @@ void setup() {
   //获取天气，日历，倒计时，温湿度
   get_net(web_hf,1);
   _date = Mqtt_Sub["updateTime"].as<String>().substring(0,10);
-  write_eeprom(_date_address,_date);
   temp = Mqtt_Sub["now"]["temp"].as<String>();
+  humidity = Mqtt_Sub["now"]["humidity"].as<String>();
+  write_eeprom(_date_address,_date);
+  write_eeprom(humidity_address,humidity);
   write_eeprom(temp_address,temp);
+  EEPROM.commit();
   }else{
     //其他复位源
   }
