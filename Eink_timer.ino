@@ -171,7 +171,7 @@ void drawHomePage(){
   temp = read_eeprom(temp_address,temp_long);
   humidity = read_eeprom(humidity_address,humidity_long);
   get_bat();
-  if((now.Minute() % 10 == 0) || RST_reason == 0){
+  if((now.Minute() % 10 == 1) || RST_reason == 0){
     if (ePaper.Init(lut_full_update) != 0) {
     Serial.print("ePaper init failed");
     while (1) yield();  // Wait here until re-boot
@@ -256,14 +256,13 @@ void setup() {
     Rtc.SetIsRunning(true);
   }
   RtcDateTime now = Rtc.GetDateTime();
-   if ((RST_reason == 0) || (now.Minute() == 0 ))
+   if ((RST_reason == 0) || (now.Minute() == 1 ))
   {
     //EN复位
   connect_net();//连接网络
   // 更新时间
   if (WiFi.status() == WL_CONNECTED) {
     time_update();
-  }
   //获取天气，日历，倒计时，温湿度
   get_net(web_hf,1);
   _date = Mqtt_Sub["updateTime"].as<String>().substring(0,10);
@@ -272,7 +271,7 @@ void setup() {
   write_eeprom(_date_address,_date);
   write_eeprom(humidity_address,humidity);
   write_eeprom(temp_address,temp);
-  EEPROM.commit();
+  EEPROM.commit();}
   }else{
     //其他复位源
   }
