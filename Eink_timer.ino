@@ -24,20 +24,12 @@ RST REASON
 #include <ArduinoJson.h>       //JSON解析
 #include <WiFiClientSecure.h>  //https请求
 #include <EEPROM.h>            //EEPROM读写
+#include "ClosedCube_SHT31D.h"    //SHT30
 //墨水屏实例
 Epd ePaper;
 //字体列表
-#define Digi &DS_DIGI32pt7b          // 数码管字体
-#define DejaVu &DejaVu_Sans_Mono_20  // 等宽字体
-#define DejaVu_10 &DejaVuSansMono_110pt7b
-#define DejaVu_12 &DejaVuSansMono_112pt7b
-#define DejaVu_15 &DejaVuSansMono_115pt7b
-#define Orbitron_32 &Orbitron_Light_32
-#define PAPL &PAPL_125pt7b  // 等宽数字
-#define Cour &cour_212pt7b
-#define PAPL_10 &PAPL_110pt7b  // 等宽数字
-#define PAPL_12 &PAPL_112pt7b  // 等宽数字
-#define PAPL_15 &PAPL_115pt7b  // 等宽数字
+#define Digi50 &DS_DIGI_150pt7b          // 数码管字体
+#define PAPL_10 &PAPL_110pt7b           // 等宽数字
 // 变量声明
 #define INK COLORED  //颜色
 #define PAPER UNCOLORED
@@ -72,10 +64,10 @@ int humidity_address = 31;
 int humidity_long = 2;
 
 //坐标布局
-int time_x = 3;
-int time_y = 33;
-int time_lx = 140;
-int time_ly = 50;
+int time_x = 20;
+int time_y = 27;
+int time_lx = 210;
+int time_ly = 70;
 int classup_x = 5;
 int classup_y = 3;
 int classup_lx = 240;
@@ -98,8 +90,24 @@ TFT_eSprite Eink = TFT_eSprite(&glc);
 RtcDS1307<TwoWire> Rtc(Wire);
 WiFiUDP ntpUDP;
 WiFiClient espClient;  // WiFi
-NTPClient timeClient(ntpUDP, "ntp.ntsc.ac.cn", 8 * 3600, 60000);
+NTPClient timeClient(ntpUDP, "ntp.ntsc.ac.cn", 8 * 3600, 60000);                                                                                  // DS1302
+ClosedCube_SHT31D sht3xd;       
 //功能函数
+// 获取SHT30温湿度
+void get_sht30(String text, SHT31D result)
+{
+  if (result.error == SHT3XD_NO_ERROR)
+  {
+    Temp_in = result.t;
+    Humidity_in = result.rh;
+  }
+  else
+  {
+    Serial.print(text);
+    Serial.print(": [ERROR] Code #");
+    Serial.println(result.error);
+  }
+}
 // 更新时间
 void time_update() {
   timeClient.begin();
@@ -172,6 +180,7 @@ void drawHomePage() {
   temp = read_eeprom(temp_address, temp_long);
   humidity = read_eeprom(humidity_address, humidity_long);
   get_bat();
+  get_sht30("Periodic Mode", sht3xd.periodicFetchData());
   if ((now.Minute() % 10 == 1) || RST_reason == 0) {
     if (ePaper.Init(lut_full_update) != 0) {
       Serial.print("ePaper init failed");
@@ -191,19 +200,28 @@ void drawHomePage() {
   Serial.println("\r\nInitialisation done.");
   Eink.setRotation(3);
   Eink.fillSprite(PAPER);
-  Eink.setFreeFont(Digi);
+  Eink.setFreeFont(Digi50);
   Eink.setTextColor(INK);
-  Eink.setTextDatum(0);
-  Eink.drawString(String(now.Hour() / 10) + String(now.Hour() % 10) + ":" + String(now.Minute() / 10) + String(now.Minute() % 10), time_x, time_y);
+  Eink.setTextDatum(4);
+  Eink.drawString(String(now.Hour() / 10) + String(now.Hour() % 10) + ":" + String(now.Minute() / 10) + String(now.Minute() % 10), 125,51);
   //Eink.drawRect(time_x, time_y, time_lx, time_ly, INK);
-  Eink.setFreeFont(DejaVu_10);
-  Eink.fillRect(classdown_x, classdown_y, classup_lx, classup_ly, PAPER);
-  Eink.drawString("21 22 23 31 32 33 Ll", classdown_x, classdown_y);
-  Eink.drawString("T:" + temp + "/" + humidity + "%", temp_x, temp_y);
+  Eink.setFreeFont(PAPL_10);
+  Eink.setTextDatum(0);
+  Eink.drawString(String(Temp_in) + "/" + temp + "'",3,3);
+  Eink.setTextDatum(2);
+  Eink.drawString(String(Humidity_in) + "/" + humidity + "%",247,3);
+  Eink.setTextDatum(6);
+  Eink.drawString(_date,3,119);
+  Eink.setTextDatum(8);
+  Eink.drawString("136d",247,119);
+  //Eink.drawLine(0,120,(v_bat - 3))
+ /*{ Eink.fillRect(classdown_x, classdown_y, classup_lx, classup_ly, PAPER);
+  //Eink.drawString("21 22 23 31 32 33 Ll", classdown_x, classdown_y);
+  Eink.drawString("T:" + temp + "/" + String(Temp_in) + "'", temp_x, temp_y);
   Eink.drawString("B:" + String(v_bat) + "v", humidity_x, humidity_y);
   Eink.drawString(_date, date_x + 8, date_y + 10);
   Eink.setTextColor(PAPER);
-  Eink.fillRect(classup_x, classup_y, classup_lx, classup_ly, INK);
+  //Eink.fillRect(classup_x, classup_y, classup_lx, classup_ly, INK);
   Eink.drawString("A1 A2 B2 B3 C1 C2 C3", classup_x, classup_y);
   //Eink.drawRect(temp_x, temp_y, temp_lx, temp_ly, INK);
   Eink.drawLine(0, temp_y - 2, 250, temp_y - 2, INK);
@@ -215,7 +233,7 @@ void drawHomePage() {
   Eink.drawString("136", (250 + time_x + time_lx) / 2, time_y + time_ly / 2);
   // Eink.loadFont(siyuan_20);
   // Eink.setCursor(40,80);
-  // Eink.print("苹果");
+  // Eink.print("苹果");}*/
   updateDisplay();
 }
 // 读写EEPROM
@@ -255,6 +273,9 @@ void setup() {
     Serial.println("RTC was not actively running, starting now");
     Rtc.SetIsRunning(true);
   }
+  sht3xd.begin(0x44);
+  if (sht3xd.periodicStart(SHT3XD_REPEATABILITY_HIGH, SHT3XD_FREQUENCY_10HZ) != SHT3XD_NO_ERROR)
+    Serial.println("[ERROR] Cannot start periodic mode");
   RtcDateTime now = Rtc.GetDateTime();
   if ((RST_reason == 0) || (now.Minute() == 1)) {
     //EN复位
