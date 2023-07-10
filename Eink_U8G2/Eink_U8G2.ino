@@ -343,6 +343,7 @@ void setup() {
       display.print(String(now.Hour() / 10) + String(now.Hour() % 10) + ":" + String(now.Minute() / 10) + String(now.Minute() % 10));
     } while (display.nextPage());
   }
+  display.powerOff();
   ESP.deepSleep((61 - now.Second()) * 1000000);
 }
 
