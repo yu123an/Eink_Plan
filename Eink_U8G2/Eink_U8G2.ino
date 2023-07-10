@@ -168,7 +168,7 @@ String read_eeprom(int addr, int lenth) {
 }
 // 绘制主屏幕
 void draw_HomePage() {
-  // 读取信息
+  // 读取天气信息
   long_msg = i2ceeprom.read(0);
   String New_msg = read_eeprom(1, long_msg);
   Serial.println("开始绘制屏幕");
@@ -185,8 +185,14 @@ void draw_HomePage() {
   moon1 = Mqtt_Sub["weather"]["moon1"].as<String>();
   sunrise = Mqtt_Sub["weather"]["sunrise"].as<String>();
   sunset = Mqtt_Sub["weather"]["sunset"].as<String>();
-  Serial.println(end_day);
-  Serial.println(moon0);
+  // 获取日程待办信息
+  long_msg = i2ceeprom.read(300) * 200 + i2ceeprom.read(301);
+  New_msg = read_eeprom(302,long_msg);
+  Serial.println(New_msg);
+  deserializeJson(Mqtt_Sub, New_msg);
+  int totle = Mqtt_Sub["num"].as<int>();
+  // Serial.println(end_day);
+  // Serial.println(moon0);
   get_sht30("Periodic Mode", sht3xd.periodicFetchData());
   Rtc.Begin();  // DS1307时间读写
   if (!Rtc.GetIsRunning()) {
@@ -234,9 +240,9 @@ void draw_HomePage() {
     // 绘制日程与待办
     ug.setCursor(5, 100);
     ug.print("今日待办事项：");
-    for (int i = 0; i < 7; i++) {
+    for (int i = 0; i < totle; i++) {
       ug.setCursor(5, 120 + 20 * i);
-      ug.print("这是第" + String(i) + "件待办事件；");
+      ug.print(String(i + 1) + "." + Mqtt_Sub["list"][i]["no"].as<String>());
       // display.drawLine(5,122 + 20 * i,150,122 + 20 * i, INK);
       //  display.drawRect(5,80,145,165,INK);
     }
@@ -316,6 +322,11 @@ void setup() {
       write_eeprom(humidity_address, humidity);
       write_eeprom(temp_address, temp);
       EEPROM.commit();*/
+      get_net(todolist);
+      long_msg = JsonMsg.length();
+      i2ceeprom.write(300, long_msg / 200);
+      i2ceeprom.write(301, long_msg % 200);
+      write_eeprom(302, JsonMsg);      
       get_net(web_weather);
       long_msg = JsonMsg.length();
       i2ceeprom.write(0, long_msg);
