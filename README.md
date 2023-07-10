@@ -56,6 +56,13 @@ GxEPD2_BW<GxEPD2_420, GxEPD2_420::HEIGHT> display(GxEPD2_420(/*CS=D8*/ 15, /*DC=
 // display.epd2.init(14, 13, 115200, true, 20, false); // define or replace SW_SCK, SW_MOSI
 display.epd2.init(14, 13, 115200, false, 20, false); // define or replace SW_SCK, SW_MOSI 
 ```
+## 绘制图片
+通过PCtoLCD进行取模
+![取模参数截图](https://github.com/yu123an/Eink_Plan/blob/main/image/%E5%8F%96%E6%A8%A1%E5%8F%82%E6%95%B0.png)
+绘制函数为
+```
+display.drawInvertedBitmap(155,80,logo,128,128,INK);
+```
 ## U8G2库中4.2寸的LUT要做调整
 以下是来自TFT-espi提供的LUT表
 ```
