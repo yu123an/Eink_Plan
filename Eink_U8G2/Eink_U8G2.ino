@@ -272,6 +272,14 @@ void draw_HomePage() {
     // 绘制电量
     // display.drawRect(360,255,30,20,INK);
     display.fillRect(360, 275, 30, 20, INK);
+    // 绘制小时天气
+    //
+    int max = i2ceeprom.read(600);
+    int min = i2ceeprom.read(601);
+    for(int i = 0;i < 23;i++){
+      display.drawLine(175 + 10 * i,90 + 165 * (max - i2ceeprom.read(602 + i)) / (max - min),175 + 10 + 10 * i,90 + 165 * (max - i2ceeprom.read(603 + i)) / (max - min),INK);
+    }
+    //
   } while (display.nextPage());
   // } else {
   //   Serial.println("进入局刷模式");
@@ -331,6 +339,13 @@ void setup() {
       long_msg = JsonMsg.length();
       i2ceeprom.write(0, long_msg);
       write_eeprom(1, JsonMsg);
+      get_net(web_hourweather);
+      deserializeJson(Mqtt_Sub, JsonMsg);
+      i2ceeprom.write(600, Mqtt_Sub["max"].as<int>());
+      i2ceeprom.write(601, Mqtt_Sub["min"].as<int>() - 1);    
+      for(int i = 0;i<24;i++){
+      i2ceeprom.write(602 + i, Mqtt_Sub["hourly"][i]["no"].as<int>());  
+      }  
     }
   } else {
     // 其他复位源
