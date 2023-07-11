@@ -232,7 +232,7 @@ void draw_HomePage()
   // 局刷
   //  display.setPartialWindow();
   display.setFullWindow();
-  display.setRotation(2); // 屏幕方向；2.9选3；4.2选2或4
+  //display.setRotation(0); // 屏幕方向；2.9选3；4.2选2或4
   display.firstPage();
   do
   {
@@ -423,7 +423,7 @@ void setup()
   }
   display.epd2.init(14, 13, 115200, false, 20, false); // define or replace SW_SCK, SW_MOSI
   ug.begin(display);                                   // connect u8g2 procedures to Adafruit GFX
-  display.setRotation(2);                              // 屏幕方向；2.9选3；4.2选2或4
+  display.setRotation(0);                              // 屏幕方向；2.9选3；4.2选2或4
 
   if ((now.Minute() % 10 == 2) || RST_reason == 0)
   {
