@@ -49,6 +49,11 @@ const unsigned char lut_partial_update[] =
 ```
 ### 关于U8G2库和GxEPD库的使用和声明
 以下是我使用的两种尺寸屏幕，分别是2.9寸和4.2寸，引脚定义在下面；
+调整SPI引脚
+在
+```
+C:\Users\aa\AppData\Local\Arduino15\packages\esp8266\hardware\esp8266\3.0.2\variants\generic\common.h
+```
 在屏幕初始化中，true要改为false，不然在深度休眠中局刷会出现问题
  ```
 GxEPD2_BW<GxEPD2_290, GxEPD2_290::HEIGHT> display(GxEPD2_290(/*CS=D8*/ 15, /*DC=D3*/ 0, /*RST=D4*/ 2, /*BUSY=D2*/ 12));  // 2.9黑白   GDEH029A1   128x296, SSD1608 (IL3820)
