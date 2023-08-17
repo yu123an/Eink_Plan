@@ -1,0 +1,4 @@
+实例路径C:\Users\Administrator.DESKTOP-HTCH52V\Documents\Arduino\libraries\U8g2\examples\full_buffer
+
+字库c文件路径C:\Users\Administrator.DESKTOP-HTCH52V\Documents\Arduino\libraries\U8g2\src\clib
+                    C:\Users\Administrator.DESKTOP-RD8BUMF\Documents\Arduino\libraries\U8g2\src\clib

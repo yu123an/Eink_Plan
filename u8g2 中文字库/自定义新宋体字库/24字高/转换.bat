@@ -1,0 +1,1 @@
+bdfconv.exe -v simsun_U24.bdf -b 0 -f 1 -M chinese.map -d simsun_U24.bdf -n u8g2_font_unifont_zgzt -o u8g2_font_unifont_zgzt.c
