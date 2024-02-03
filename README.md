@@ -128,3 +128,38 @@ const unsigned char GxEPD2_420::lut_23_wb_full[] PROGMEM ={
             
 };
 ```
+
+## 三色墨水屏色阶的实现
+```
+void draw_3_shadow(int x, int y, int xl, int yl, int color)
+{
+   for (int ix = x; ix < x + xl; ix++)
+  {
+    for (int iy = y; iy < y + yl; iy++)
+    {
+      display.drawPixel(ix, iy, (ix % 2 == 0) &&(iy % 2 == 0 ) ? color : PAPER);
+    }
+  }
+}
+void draw_2_shadow(int x, int y, int xl, int yl, int color)
+{
+   for (int ix = x; ix < x + xl; ix++)
+  {
+    for (int iy = y; iy < y + yl; iy++)
+    {
+      display.drawPixel(ix, iy, ((ix % 2 == 0) &&(iy % 2 != 0 ) ||(ix % 2 != 0) &&(iy % 2 == 0 )) ? color : PAPER);
+    }
+  }
+}
+void draw_1_shadow(int x, int y, int xl, int yl, int color)
+{
+   for (int ix = x; ix < x + xl; ix++)
+  {
+    for (int iy = y; iy < y + yl; iy++)
+    {
+      display.drawPixel(ix, iy, (ix % 2 == 0) || (iy % 2 == 0 ) ? color : PAPER);
+    }
+  }
+}
+```
+![色阶显示](https://github.com/yu123an/Eink_Plan/blob/main/image/20240204_001936.jpg)https://github.com/yu123an/Eink_Plan/blob/main/image/20240204_001936.jpg)
