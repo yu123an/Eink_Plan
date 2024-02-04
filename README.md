@@ -163,3 +163,9 @@ void draw_1_shadow(int x, int y, int xl, int yl, int color)
 }
 ```
 ![色阶显示](https://github.com/yu123an/Eink_Plan/blob/main/image/20240204_001936.jpg)https://github.com/yu123an/Eink_Plan/blob/main/image/20240204_001936.jpg)
+
+
+## 一种新的不需要抖动？另一种抖动方式：`半色调`
+```
+convert map.bmp -colorspace LinearGray -ordered-dither o3x3 -colors 256  BMP2:map_1.bmp
+```
