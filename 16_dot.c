@@ -6,7 +6,7 @@
 #include <avr/power.h> // WS2812驱动
 #endif
 #include <Wire.h>
-#include <Rtc_Pcf8563.h>
+#include "RTClib.h"
 #include <ESP8266HTTPClient.h>
 #include <ESP8266WiFi.h>
 #include <NTPClient.h> //网络校时
@@ -39,11 +39,12 @@ int color_r = 255, color_g = 36, color_b = 234;
 int gif_num;
 int light = 10;
 int Sun_rise_hour, Sun_rise_minute, Sun_set_hour, Sun_set_minute;
+char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 // 构造对象
 Adafruit_NeoPixel WS(LED_NUM, LED, NEO_GRB + NEO_KHZ800); // WS2812
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "1.openwrt.pool.ntp.org", 3600 * 8, 60000);
-Rtc_Pcf8563 rtc;
+RTC_PCF8563 rtc;
 WiFiClient espClient;
 Ticker time_update;
 Ticker msg_update;
@@ -141,7 +142,8 @@ void JsonEecoed(String json)
 void setup()
 {
   EEPROM.begin(200);
-  rtc.initClock();
+  Wire.begin(5, 4);
+  
   rotaryEncoder.begin();
   rotaryEncoder.setup(readEncoderISR);
   bool circleValues = false;
@@ -150,7 +152,6 @@ void setup()
   ticker.attach_ms(500, rotary_loop);
   Wire.setClock(1000000);
   WS.begin(); // WS2812驱动使能
-  Wire.begin(5, 4);
   Serial.begin(115200);
   if (i2ceeprom.begin(0x50))
   { // EEProm使能
@@ -177,8 +178,18 @@ void setup()
   Serial.println(WiFi.localIP());
   timeClient.begin(); // 获取网络时间
   timeClient.update();
-  //hr, min, sec
-  rtc.setTime(timeClient.getHours(),timeClient.getMinutes(),timeClient.getSeconds());
+if (!rtc.begin())
+  {
+    Serial.println("Couldn't find RTC");
+    Serial.flush();
+    while (1)
+      delay(10);
+  }
+
+ rtc.adjust(DateTime(2024, 9, 3, timeClient.getHours(), timeClient.getMinutes(), timeClient.getSeconds()));
+ 
+  rtc.start();
+
   get_net(gif_msg, 1);
   gif_num = i2ceeprom.read(0);
   String gif_name = Mqtt_Sub["name"].as<String>();
@@ -219,6 +230,11 @@ void loop()
       delay(20);
     }
   }
-Serial.println(rtc.getHour());
+  DateTime now = rtc.now();
+  Serial.print(now.hour());
+  Serial.print(":");
+  Serial.print(now.minute());
+  Serial.print(":");
+  Serial.println(now.second());
   delay(998);
 }
