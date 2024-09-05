@@ -50,6 +50,25 @@ Ticker time_update;
 Ticker msg_update;
 Ticker ticker;
 Adafruit_EEPROM_I2C i2ceeprom;
+uint8_t number[10][8] = {
+0x00,0x00,0xFC,0x0F,0x0C,0x0C,0xFC,0x0F,
+0x00,0x00,0x0C,0x0C,0xFC,0x0F,0x00,0x0C,
+0x00,0x00,0xDC,0x0F,0xCC,0x0C,0xFC,0x0C,
+0x00,0x00,0x1C,0x0E,0xCC,0x0C,0x3C,0x0F,
+0x00,0x00,0xFC,0x01,0x80,0x01,0xFC,0x0F,
+0x00,0x00,0xFC,0x0E,0xCC,0x08,0xCC,0x0F,
+0x00,0x00,0xFC,0x0F,0xCC,0x08,0xDC,0x0F,
+0x00,0x00,0x0C,0x00,0x8C,0x0F,0xFC,0x0F,
+0x00,0x00,0x3C,0x0F,0xCC,0x0C,0x3C,0x0F,
+0x00,0x00,0xFC,0x0C,0xCC,0x08,0xFC,0x0F,};
+//数字输出
+void draw_X(int x, int num, int r, int g, int b) {
+  for (int X = 0; X < 8; X++) {
+    for (int Y = 0; Y < 8; Y++) {
+      WS.setPixelColor(8 * (x + 1) + 8 * (X - 1) + Y, ((number[num][X] >> Y) & 0x01) * r, ((number[num][X] >> Y) & 0x01) * g, ((number[num][X] >> Y) & 0x01) * b);
+    }
+  }
+}
 // 编码器相关
 void rotary_onButtonClick()
 {
@@ -190,51 +209,59 @@ if (!rtc.begin())
  
   rtc.start();
 
-  get_net(gif_msg, 1);
-  gif_num = i2ceeprom.read(0);
-  String gif_name = Mqtt_Sub["name"].as<String>();
-  if (gif_num != Mqtt_Sub["num"].as<int>())
-  {
-    Serial.println("new gif");
-    gif_num = Mqtt_Sub["num"].as<int>();
-    i2ceeprom.write(0, gif_num);
-    for (int num = 0; num < gif_num; num++)
-    {
-      get_net(gif_addr + gif_name + "--" + String(num) + "_bin.log", 1);
-      for (int i = 0; i < 768; i++)
-      {
-        i2ceeprom.write(num * 768 + i + 2, Mqtt_Sub[i]["n"]);
-      }
-    }
-  }
-  else
-  {
-    Serial.println("the same gif");
-  }
+  // get_net(gif_msg, 1);
+  // gif_num = i2ceeprom.read(0);
+  // String gif_name = Mqtt_Sub["name"].as<String>();
+  // if (gif_num != Mqtt_Sub["num"].as<int>())
+  // {
+  //   Serial.println("new gif");
+  //   gif_num = Mqtt_Sub["num"].as<int>();
+  //   i2ceeprom.write(0, gif_num);
+  //   for (int num = 0; num < gif_num; num++)
+  //   {
+  //     get_net(gif_addr + gif_name + "--" + String(num) + "_bin.log", 1);
+  //     for (int i = 0; i < 768; i++)
+  //     {
+  //       i2ceeprom.write(num * 768 + i + 2, Mqtt_Sub[i]["n"]);
+  //     }
+  //   }
+  // }
+  // else
+  // {
+  //   Serial.println("the same gif");
+  // }
 }
 void loop()
 {
   WS.setBrightness(light);
-  for (int mm = 0; mm < 10; mm++)
-  {
-    int num_gif = i2ceeprom.read(0);
-    for (int num = 0; num < num_gif; num++)
-    {
-      for (int i = 0; i < 256; i++)
-      {
-        WS.setPixelColor(i, i2ceeprom.read(num * 768 + 2 + i * 3 + 2), i2ceeprom.read(num * 768 + 2 + i * 3 + 1), i2ceeprom.read(num * 768 + 2 + i * 3 + 0));
-      }
-      WS.show();
-      //  delay(1000 / num_gif);
-      // ESP.wdtFeed();
-      delay(20);
-    }
-  }
+  // for (int mm = 0; mm < 10; mm++)
+  // {
+  //   int num_gif = i2ceeprom.read(0);
+  //   for (int num = 0; num < num_gif; num++)
+  //   {
+  //     for (int i = 0; i < 256; i++)
+  //     {
+  //       WS.setPixelColor(i, i2ceeprom.read(num * 768 + 2 + i * 3 + 2), i2ceeprom.read(num * 768 + 2 + i * 3 + 1), i2ceeprom.read(num * 768 + 2 + i * 3 + 0));
+  //     }
+  //     WS.show();
+  //     //  delay(1000 / num_gif);
+  //     // ESP.wdtFeed();
+  //     delay(20);
+  //   }
+  // }
   DateTime now = rtc.now();
   Serial.print(now.hour());
   Serial.print(":");
   Serial.print(now.minute());
   Serial.print(":");
   Serial.println(now.second());
+  draw_X(0,now.hour() / 10,100,200,0);
+  draw_X(8,now.hour() % 10,100,200,0);
+   draw_X(16,now.minute() / 10,10,200,0);
+  draw_X(24,now.minute() % 10,10,200,0);
+  //   draw_X(16,now.second() / 10,10,200,0);
+  // draw_X(24,now.second() % 10,10,200,0);
+  WS.show();
+  WS.show();
   delay(998);
 }
